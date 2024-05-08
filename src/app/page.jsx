@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import DecisionWheel from './components/DecisionWheel';
 import { FaLongArrowAltLeft } from 'react-icons/fa';
 
@@ -19,141 +19,59 @@ export default function Home() {
     setOptions([]);
   };
 
-  // Lock scrolling on the main body but allow it on the wheel
-  useEffect(() => {
-    const handleWheel = (event) => {
-      if (!event.target.classList.contains('roll_inner')) {
-        event.preventDefault();
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
-
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24 '>
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <div className='pb-12 text-5xl font-bold'>PicknFlick!</div>
-        <p className='italic pb-6'>
-          Add your choices and scroll or swipe to start
-          <br />
-          (6 max)
-        </p>
-        <input
-          className='text-center border-2 border-gray-600'
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => (e.key === 'Enter' ? addOption() : null)}
-          placeholder='Enter an option'
-        />
-        <div className='flex justify-center mt-4'>
-          {/* <button
-            onClick={addOption}
-            className='mb-12 p-3 rounded-lg bg-green-600 items-center flex justify-center '>
-            Add Option
-          </button> */}
+    <main className='h-screen'>
+      <div className='text-center mt-8 p-4 flex flex-col justify-center'>
+        <h1 className='mb-3 text-6xl font-bold'>PicknFlick</h1>
+        <h2 className='text-lg mb-3'>
+          Custom Decision Maker <span className='italic'>with a twist!</span>
+        </h2>
+
+        <div className='flex flex-col justify-center mx-auto h-16'>
+          {options.length === 1 && (
+            <p className='text-red-500'>Add one more option to start! </p>
+          )}
+          {options.length >= 6 && (
+            <p className='text-red-500'>Maximum of 6 options reached!</p>
+          )}
+          <input
+            className='flex justify-center  w-full text-center border-2 border-gray-600'
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) =>
+              e.key === 'Enter' && options.length < 6 ? addOption() : null
+            }
+            placeholder='Enter your options here!'
+            disabled={options.length >= 6}
+          />
+        </div>
+        <div className='flex justify-center mt-2 gap-4'>
           <button
             onClick={addOption}
-            className='mb-12 p-3 rounded-lg bg-green-600 items-center flex justify-center'
-            disabled={options.length >= 6} // Disable button when 6 options are reached
-            title={
-              options.length >= 6
-                ? 'Maximum of 6 options reached'
-                : 'Add Option'
-            } // Tooltip when disabled
-          >
+            className=' px-4 py-2.5 rounded-lg bg-green-600 items-center  '>
             Add Option
           </button>
           <button
             onClick={resetOptions}
-            className='mb-12 ml-4 p-3 rounded-lg bg-red-600 items-center flex justify-center'>
+            className=' px-3 py-2.5 rounded-lg bg-red-600 '>
             Reset
           </button>
         </div>
-        <div className='flex'>
-          <DecisionWheel options={options} />
-          <div className='flex items-center  '>
-            <FaLongArrowAltLeft size={100} />
-          </div>
-        </div>
       </div>
+
+      {options.length > 1 && (
+        <>
+          <div className='flex justify-center font-bold mt-3'>
+            Just Flick It!
+          </div>
+          <div className='flex-row flex justify-center items-center align-middle mt-24 pl-16'>
+            <DecisionWheel options={options} className='' />
+            <div className='flex z-10'>
+              <FaLongArrowAltLeft size={100} className='' />
+            </div>
+          </div>
+        </>
+      )}
     </main>
   );
 }
-
-// 'use client';
-// import React, { useState, useEffect } from 'react';
-// import DecisionWheel from './components/DecisionWheel';
-
-// export default function Home() {
-//   const [options, setOptions] = useState([]);
-//   const [input, setInput] = useState('');
-
-//   const addOption = () => {
-//     if (options.length < 6 && input) {
-//       setOptions([...options, input]);
-//       setInput('');
-//     }
-//   };
-
-//   const resetOptions = () => {
-//     setOptions([]);
-//   };
-
-//   useEffect(() => {
-//     const handleWheel = (event) => {
-//       if (!event.target.classList.contains('roll_inner')) {
-//         event.preventDefault();
-//       }
-//     };
-
-//     window.addEventListener('wheel', handleWheel, { passive: false });
-
-//     return () => {
-//       window.removeEventListener('wheel', handleWheel);
-//     };
-//   }, []);
-
-//   return (
-//     <main className='flex min-h-screen flex-col items-center justify-between p-24 '>
-//       <div style={{ textAlign: 'center', marginTop: '50px' }}>
-//         <div className='pb-12 text-5xl font-bold'>PicknFlick!</div>
-//         <p className='italic pb-6'>
-//           Add your choices and scroll or swipe to start
-//         </p>
-//         <input
-//           className='text-center border-2 border-gray-600'
-//           value={input}
-//           onChange={(e) => setInput(e.target.value)}
-//           onKeyPress={(e) => (e.key === 'Enter' ? addOption() : null)}
-//           placeholder='Enter an option'
-//           disabled={options.length >= 6} // Disable input when 6 options are reached
-//         />
-//         <div className='flex justify-center mt-4'>
-//           <button
-//             onClick={addOption}
-//             className='mb-12 p-3 rounded-lg bg-green-600 items-center flex justify-center'
-//             disabled={options.length >= 6} // Disable button when 6 options are reached
-//             title={
-//               options.length >= 6
-//                 ? 'Maximum of 6 options reached'
-//                 : 'Add Option'
-//             } // Tooltip when disabled
-//           >
-//             Add Option
-//           </button>
-//           <button
-//             onClick={resetOptions}
-//             className='mb-12 ml-4 p-3 rounded-lg bg-red-600 items-center flex justify-center'>
-//             Reset
-//           </button>
-//         </div>
-//         <DecisionWheel options={options} />
-//       </div>
-//     </main>
-//   );
-// }
