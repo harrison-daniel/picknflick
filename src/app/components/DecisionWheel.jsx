@@ -3,17 +3,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const colors = [
-  'rgba(42, 82, 190, 1.0)', // Cerulean Blue
-  'rgba(215, 0, 64, 1.0)', // Carmine Red
-  'rgba(255, 191, 0, 1.0)', // Amber
-  'rgba(0, 158, 115, 1.0)', // Emerald Green
-  'rgba(143, 0, 255, 1.0)', // Violet
-  'rgba(255, 88, 0, 1.0)', // Tangerine
+  'color(display-p3 0.000 0.340 0.320)', // Jungle Canopy Green
+  'color(display-p3 0.000 0.290 0.270)', // Rainforest Green
+  'color(display-p3 0.000 0.240 0.220)', // Tropical Green
+  'color(display-p3 0.000 0.190 0.170)', // Underbrush Green
+  'color(display-p3 0.000 0.140 0.120)', // Dark Leaf Green
+  'color(display-p3 0.000 0.090 0.070)', // Nighttime Jungle Green
 ];
-
-// const colors = ['rgba(0, 0, 0, 1.0)'];
-
-// 1 is for no transparency
 
 const DecisionWheel = ({ options }) => {
   const wheelRef = useRef(null);
@@ -28,8 +24,6 @@ const DecisionWheel = ({ options }) => {
   }, [options.length]);
 
   const degreePerSlot = 360 / totalSlots;
-  // OG SIZE
-  // const paneSize = 275;
   const paneSize = 135;
   const zDepth = paneSize / (2 * Math.tan(Math.PI / totalSlots));
 
@@ -68,25 +62,6 @@ const DecisionWheel = ({ options }) => {
       }
       touchEndVelocity.current = 0;
     };
-
-    //   window.addEventListener('wheel', handleWheel, { passive: false });
-    //   wheelRef.current.addEventListener('touchstart', handleTouchStart, {
-    //     passive: false,
-    //   });
-    //   wheelRef.current.addEventListener('touchmove', handleTouchMove, {
-    //     passive: false,
-    //   });
-    //   wheelRef.current.addEventListener('touchend', handleTouchEnd, {
-    //     passive: false,
-    //   });
-
-    //   return () => {
-    //     window.removeEventListener('wheel', handleWheel);
-    //     wheelRef.current.removeEventListener('touchstart', handleTouchStart);
-    //     wheelRef.current.removeEventListener('touchmove', handleTouchMove);
-    //     wheelRef.current.removeEventListener('touchend', handleTouchEnd);
-    //   };
-    // }, [degreePerSlot, rotation]);
 
     // Check if wheelRef.current is not null before adding event listeners
     if (wheelRef.current) {
@@ -142,7 +117,6 @@ const DecisionWheel = ({ options }) => {
                     lineHeight: `${paneSize}px`,
                     width: '100%',
                     background: colors[index % 2], // Apply colors in pairs
-                    // position: 'absolute',
                     textAlign: 'center',
                     color: 'white',
                   }}>
@@ -164,7 +138,6 @@ const DecisionWheel = ({ options }) => {
                     lineHeight: `${paneSize}px`,
                     width: '100%',
                     background: colors[index % colors.length],
-                    // position: 'absolute',
                     textAlign: 'center',
                     color: 'white',
                   }}>
