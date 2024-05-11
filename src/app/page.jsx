@@ -5,7 +5,7 @@ import DecisionWheel from './components/DecisionWheel';
 import { FaLongArrowAltLeft } from 'react-icons/fa';
 import { FaRegSquarePlus } from 'react-icons/fa6';
 import Image from 'next/image';
-import PicknFlickLogo2 from '../../public/images/PicknFlick.png';
+import PicknFlickLogo from '../../public/images/PicknFlickLogo.png';
 
 export default function Home() {
   const [options, setOptions] = useState([]);
@@ -36,23 +36,23 @@ export default function Home() {
   return (
     <main className='h-screen'>
       {/* ------------------ Banner ------------------ */}
-      <div className='text-center mt-9 px-4 mx-auto flex flex-col justify-center'>
+      <div className='text-center mt-[2vh] px-4 mx-auto flex flex-col justify-center'>
         <div className='flex justify-center '>
           <Image
-            src={PicknFlickLogo2}
+            src={PicknFlickLogo}
             height={150}
             alt='Pick n Flick Logo'
             className='logo  '
           />
         </div>
 
-        <h2 className='mt-4 text-sm italic text-slate-200 md:text-lg'>
+        <h2 className='mt-1 font-bold text-sm italic text-slate-200 md:text-lg'>
           Custom Decision Maker
         </h2>
       </div>
 
       {/* ------------------ Wheel + Arrow ------------------ */}
-      <div className='flex-row flex justify-center items-center  align-middle mt-12 pl-28 h-72'>
+      <div className='flex-row flex justify-center items-center  align-middle mt-14 pl-24 h-72'>
         {options.length > 0 ? (
           <DecisionWheel options={options} />
         ) : (
@@ -66,7 +66,8 @@ export default function Home() {
 
       {/* ------------------ INPUT  ------------------ */}
 
-      <div className='flex flex-col mt-3 '>
+      {/* <div className='flex flex-col mt-9 '> */}
+      <div className='flex flex-col mt-[6vh] '>
         <div className='h-20 flex justify-end  mx-auto flex-col'>
           {options.length === 1 && (
             <p className='h-7 text-red-500'>Add one more option to start!</p>

@@ -24,7 +24,7 @@ const DecisionWheel = ({ options }) => {
   }, [options.length]);
 
   const degreePerSlot = 360 / totalSlots;
-  const paneSize = 135;
+  const paneSize = 165;
   const zDepth = paneSize / (2 * Math.tan(Math.PI / totalSlots));
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const DecisionWheel = ({ options }) => {
       const scrollIntensity = Math.abs(event.deltaY);
       const scrollDirection = event.deltaY > 0 ? -1 : 1;
       const spinMagnitude =
-        scrollDirection * scrollIntensity * degreePerSlot * 0.01; // Tuned spin magnitude for desktop
+        scrollDirection * scrollIntensity * degreePerSlot * 0.025; // Tuned spin magnitude for desktop
       spinWheel(spinMagnitude);
     };
 
@@ -57,7 +57,7 @@ const DecisionWheel = ({ options }) => {
       if (Math.abs(touchEndVelocity.current) > 10) {
         const direction = touchEndVelocity.current > 0 ? -1 : 1;
         const swipeIntensity = Math.abs(touchEndVelocity.current);
-        const spinMagnitude = direction * swipeIntensity * degreePerSlot * 0.06; //  spin magnitude for mobile
+        const spinMagnitude = direction * swipeIntensity * degreePerSlot * 0.16; //  spin magnitude for mobile
         spinWheel(spinMagnitude);
       }
       touchEndVelocity.current = 0;
