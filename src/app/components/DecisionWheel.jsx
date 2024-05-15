@@ -17,7 +17,6 @@ const DecisionWheel = ({ options }) => {
   const touchEndVelocity = useRef(0);
   const [rotation, setRotation] = useState(0);
 
-  // Determine the number of slots and their physical characteristics
   const totalSlots = useMemo(() => {
     if (options.length === 2) return 4;
     return options.length;
@@ -33,7 +32,7 @@ const DecisionWheel = ({ options }) => {
       const scrollIntensity = Math.abs(event.deltaY);
       const scrollDirection = event.deltaY > 0 ? -1 : 1;
       const spinMagnitude =
-        scrollDirection * scrollIntensity * degreePerSlot * 0.025; // Tuned spin magnitude for desktop
+        scrollDirection * scrollIntensity * degreePerSlot * 0.025; // Spin Magnitude for desktop
       spinWheel(spinMagnitude);
     };
 
@@ -63,7 +62,6 @@ const DecisionWheel = ({ options }) => {
       touchEndVelocity.current = 0;
     };
 
-    // Check if wheelRef.current is not null before adding event listeners
     if (wheelRef.current) {
       wheelRef.current.addEventListener('touchstart', handleTouchStart, {
         passive: false,
@@ -77,7 +75,6 @@ const DecisionWheel = ({ options }) => {
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
 
-    // Cleanup function
     return () => {
       if (wheelRef.current) {
         wheelRef.current.removeEventListener('touchstart', handleTouchStart);
@@ -86,7 +83,7 @@ const DecisionWheel = ({ options }) => {
       }
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [degreePerSlot, options.length, rotation]); // Make sure all dependencies are included if they affect the listeners
+  }, [degreePerSlot, options.length, rotation]);
 
   const spinWheel = (spinMagnitude) => {
     const randomComponent = Math.random() * 360 - 180;
@@ -116,7 +113,7 @@ const DecisionWheel = ({ options }) => {
                     height: `${paneSize}px`,
                     lineHeight: `${paneSize}px`,
                     width: '100%',
-                    background: colors[index % 2], // Apply colors in pairs
+                    background: colors[index % 2],
                     textAlign: 'center',
                     color: 'white',
                   }}>
