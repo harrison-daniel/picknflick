@@ -220,62 +220,62 @@ function DecisionInput({ options, updateOptions }) {
                 <DrawerTitle className='flex justify-center'>
                   Enter your decisions below!
                 </DrawerTitle>
-                <DrawerDescription className='flex flex-col justify-center '>
+                <DrawerDescription className='flex h-fit flex-col justify-center '>
                   <div className='flex justify-center'>{getHeaderText()}</div>
                 </DrawerDescription>
               </DrawerHeader>
               {/* ------------ INPUT CONTENT START ----------*/}
-              <div className=''>
-                <AnimatePresence>
-                  {tempOptions.map((option, index) => (
-                    <motion.div
-                      key={index}
-                      {...animationProps}
-                      className='m-4 flex flex-row items-center justify-between gap-3'>
-                      <Label
-                        htmlFor={`option-${index}`}
-                        className='whitespace-nowrap text-center'>
-                        Option <span>{index + 1}</span>
-                      </Label>
-                      <Input
-                        id={`option-${index}`}
-                        value={option}
-                        onChange={(e) => handleOptionChange(e, index)}
-                        onBlur={handleBlur}
-                        onKeyDown={(e) => handleKeyDown(e, index)}
-                        className='mx-auto flex-1 text-base'
-                      />
-                      {tempOptions.length > 2 && (
-                        <Button
-                          onClick={() => removeOption(index)}
-                          variant='danger'
-                          className='m-0 p-0'>
-                          <FaRegWindowClose />
-                        </Button>
-                      )}
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div className='mt-4 flex flex-row justify-center gap-4'>
-                  <Button
-                    onClick={handleClearOptions}
-                    variant='danger'
-                    className='text-red-500'
-                    disabled={!anyOptionFilled(tempOptions)}>
-                    Clear All
-                  </Button>
-                  <Button
-                    onClick={addOption}
-                    className='flex flex-row gap-1.5 border border-black p-2'
-                    variant='primary'
-                    disabled={
-                      tempOptions.length >= 6 || !allOptionsFilled(tempOptions)
-                    }>
-                    <FaPlus size={12} />
-                    Add Option
-                  </Button>
-                </div>
+
+              <AnimatePresence>
+                {tempOptions.map((option, index) => (
+                  <motion.div
+                    key={index}
+                    {...animationProps}
+                    className='mx-5 my-0.5 flex flex-row items-center justify-between gap-3'>
+                    <Label
+                      htmlFor={`option-${index}`}
+                      className='whitespace-nowrap text-center'>
+                      Option <span>{index + 1}</span>
+                    </Label>
+                    <Input
+                      id={`option-${index}`}
+                      value={option}
+                      onChange={(e) => handleOptionChange(e, index)}
+                      onBlur={handleBlur}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                      className='   '
+                    />
+                    {tempOptions.length > 2 && (
+                      <Button
+                        onClick={() => removeOption(index)}
+                        variant='danger'
+                        className='m-0 p-0'>
+                        <FaRegWindowClose />
+                      </Button>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              <div className='mt-2 flex flex-row justify-center gap-4'>
+                <Button
+                  onClick={handleClearOptions}
+                  variant='danger'
+                  className='text-red-500'
+                  disabled={!anyOptionFilled(tempOptions)}>
+                  Clear All
+                </Button>
+                <Button
+                  onClick={addOption}
+                  className='flex flex-row  border border-black p-1'
+                  variant='primary'
+                  disabled={
+                    tempOptions.length >= 6 || !allOptionsFilled(tempOptions)
+                  }>
+                  <FaPlus size={12} />
+                  Add Option
+                </Button>
               </div>
+
               {/* ------------ END INPUT  ----------*/}
               <DrawerFooter className='pt-2'>
                 <DrawerClose asChild>
