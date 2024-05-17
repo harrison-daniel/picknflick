@@ -2,9 +2,11 @@
 
 import React, { useState, useCallback } from 'react';
 import DecisionWheel from './components/DecisionWheel';
-import { FaLongArrowAltLeft } from 'react-icons/fa';
 import Image from 'next/image';
-import PicknFlickLogo from '../../public/images/PicknFlickLogo.png';
+import PicknFlickLogo3 from '../../public/images/PicknFlick-logo-3.png';
+import PicknFlickHeader from '../../public/images/PicknFlick-header.png';
+import { AiFillCaretLeft } from 'react-icons/ai';
+
 import DecisionInput from './components/DecisionInput';
 
 export default function Home() {
@@ -15,28 +17,31 @@ export default function Home() {
   }, []);
 
   return (
-    <main className=' mx-auto flex h-screen flex-col items-center  gap-32 '>
+    <main className=' mx-auto flex h-screen flex-col items-center   '>
       {/* ------------------ Banner ------------------ */}
 
-      <div className='  flex flex-col items-center gap-2 '>
-        <div className='flex  px-2 py-2'>
+      <div className=' flex flex-col items-center justify-center '>
+        <div className=''>
           <Image
-            src={PicknFlickLogo}
-            height={100}
+            src={PicknFlickLogo3}
+            // height={190}
             alt='Pick n Flick Logo'
-            className='logo'
+            className='w-40 lg:w-72'
           />
         </div>
-        <div className='flex '>
-          <h2 className='text-2xl font-extrabold text-zinc-900'>
-            Custom Decision Maker
-          </h2>
+        <div>
+          <Image
+            src={PicknFlickHeader}
+            // height={40}
+            alt='Pick n Flick Logo'
+            className='w-60 md:w-96'
+          />
         </div>
       </div>
 
       {/* ------------------ Wheel + Arrow START ------------------ */}
 
-      <div className=' flex flex-row items-center pl-24 '>
+      <div className=' mt-[17vh] flex flex-row items-center pl-28 '>
         <div>
           <DecisionWheel
             options={
@@ -53,13 +58,13 @@ export default function Home() {
             }
           />
         </div>
-        <div className='relative -inset-x-3 z-10'>
-          <FaLongArrowAltLeft size={100} className=' text-slate-300' />
+        <div className='relative -inset-x-11 z-10'>
+          <AiFillCaretLeft size={120} className=' text-orange-700' />
         </div>
       </div>
 
       {/* ------------------ Input Popover START ------------------ */}
-      <div className=' mt-[3vh] flex justify-center align-middle '>
+      <div className=' mt-[19vh] flex justify-center align-middle '>
         <DecisionInput
           require
           options={options}

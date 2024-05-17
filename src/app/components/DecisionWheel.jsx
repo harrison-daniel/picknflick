@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const colors = [
-  'color(display-p3 0.000 0.340 0.320)', // Jungle Canopy Green
-  'color(display-p3 0.000 0.290 0.270)', // Rainforest Green
-  'color(display-p3 0.000 0.240 0.220)', // Tropical Green
-  'color(display-p3 0.000 0.190 0.170)', // Underbrush Green
-  'color(display-p3 0.000 0.140 0.120)', // Dark Leaf Green
-  'color(display-p3 0.000 0.090 0.070)', // Nighttime Jungle Green
+  'color(display-p3 0.000 0.100 0.080)', // Dark Leaf Green
+  'color(display-p3 0.000 0.000 0.000)', // Nighttime Jungle Green (darkest)
+  'color(display-p3 0.000 0.500 0.480)', // Jungle Canopy Green (lightest)
+  'color(display-p3 0.000 0.400 0.380)', // Rainforest Green
+  'color(display-p3 0.000 0.300 0.280)', // Tropical Green
+  'color(display-p3 0.000 0.200 0.180)', // Underbrush Green
 ];
 
 const DecisionWheel = ({ options }) => {
