@@ -23,7 +23,6 @@ import {
 import useMediaQuery from '../lib/useMediaQuery';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaRegWindowClose, FaPlus } from 'react-icons/fa';
-import { ScrollArea } from '../components/ui/scroll-area';
 
 function DecisionInput({ options, updateOptions }) {
   const [open, setOpen] = useState(false);
@@ -226,41 +225,39 @@ function DecisionInput({ options, updateOptions }) {
                 </DrawerDescription>
               </DrawerHeader>
               {/* ------------ INPUT CONTENT START ----------*/}
-              <ScrollArea className='h-auto overflow-y-auto'>
-                <div className='my-2 flex flex-col gap-0.5'>
-                  <AnimatePresence>
-                    {tempOptions.map((option, index) => (
-                      <motion.div
-                        key={index}
-                        {...animationProps}
-                        className='mx-5 my-1 flex h-7 flex-row items-center justify-between gap-3'>
-                        <Label
-                          htmlFor={`option-${index}`}
-                          className='whitespace-nowrap text-center'>
-                          Option <span>{index + 1}</span>
-                        </Label>
-                        <Input
-                          id={`option-${index}`}
-                          value={option}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onChange={(e) => handleOptionChange(e, index)}
-                          onBlur={handleBlur}
-                          onKeyDown={(e) => handleKeyDown(e, index)}
-                          className='   '
-                        />
-                        {tempOptions.length > 2 && (
-                          <Button
-                            onClick={() => removeOption(index)}
-                            variant='danger'
-                            className='m-0 p-0'>
-                            <FaRegWindowClose />
-                          </Button>
-                        )}
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </ScrollArea>
+              <div className='my-2 flex flex-col gap-0.5'>
+                <AnimatePresence>
+                  {tempOptions.map((option, index) => (
+                    <motion.div
+                      key={index}
+                      {...animationProps}
+                      className='mx-5 my-1 flex h-7 flex-row items-center justify-between gap-3'>
+                      <Label
+                        htmlFor={`option-${index}`}
+                        className='whitespace-nowrap text-center'>
+                        Option <span>{index + 1}</span>
+                      </Label>
+                      <Input
+                        id={`option-${index}`}
+                        value={option}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onChange={(e) => handleOptionChange(e, index)}
+                        onBlur={handleBlur}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        className='   '
+                      />
+                      {tempOptions.length > 2 && (
+                        <Button
+                          onClick={() => removeOption(index)}
+                          variant='danger'
+                          className='m-0 p-0'>
+                          <FaRegWindowClose />
+                        </Button>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
 
               <div className='my-2 flex flex-row justify-center gap-4'>
                 <Button
