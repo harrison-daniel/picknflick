@@ -23,6 +23,7 @@ import {
 import useMediaQuery from '../lib/useMediaQuery';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaRegWindowClose, FaPlus } from 'react-icons/fa';
+import { ScrollArea } from '../components/ui/scroll-area';
 
 function DecisionInput({ options, updateOptions }) {
   const [open, setOpen] = useState(false);
@@ -215,58 +216,63 @@ function DecisionInput({ options, updateOptions }) {
                 Open Options
               </Button>
             </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader className='flex flex-col justify-center gap-2 '>
+            <DrawerContent className='fixed bottom-0 left-0 right-0 flex max-h-[96%] flex-col rounded-t-[10px] bg-white'>
+              <DrawerHeader className='flex flex-col justify-center gap-0.5 py-1 pb-2'>
                 <DrawerTitle className='flex justify-center'>
                   Enter your decisions below!
                 </DrawerTitle>
-                <DrawerDescription className='flex h-fit flex-col justify-center '>
+                <DrawerDescription className='flex  flex-col justify-center '>
                   <div className='flex justify-center'>{getHeaderText()}</div>
                 </DrawerDescription>
               </DrawerHeader>
               {/* ------------ INPUT CONTENT START ----------*/}
+              <ScrollArea className='h-auto overflow-y-auto'>
+                <div className='my-2 flex flex-col gap-0.5'>
+                  <AnimatePresence>
+                    {tempOptions.map((option, index) => (
+                      <motion.div
+                        key={index}
+                        {...animationProps}
+                        className='mx-5 my-1 flex h-7 flex-row items-center justify-between gap-3'>
+                        <Label
+                          htmlFor={`option-${index}`}
+                          className='whitespace-nowrap text-center'>
+                          Option <span>{index + 1}</span>
+                        </Label>
+                        <Input
+                          id={`option-${index}`}
+                          value={option}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onChange={(e) => handleOptionChange(e, index)}
+                          onBlur={handleBlur}
+                          onKeyDown={(e) => handleKeyDown(e, index)}
+                          className='   '
+                        />
+                        {tempOptions.length > 2 && (
+                          <Button
+                            onClick={() => removeOption(index)}
+                            variant='danger'
+                            className='m-0 p-0'>
+                            <FaRegWindowClose />
+                          </Button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </ScrollArea>
 
-              <AnimatePresence>
-                {tempOptions.map((option, index) => (
-                  <motion.div
-                    key={index}
-                    {...animationProps}
-                    className='mx-5 my-0.5 flex flex-row items-center justify-between gap-3'>
-                    <Label
-                      htmlFor={`option-${index}`}
-                      className='whitespace-nowrap text-center'>
-                      Option <span>{index + 1}</span>
-                    </Label>
-                    <Input
-                      id={`option-${index}`}
-                      value={option}
-                      onChange={(e) => handleOptionChange(e, index)}
-                      onBlur={handleBlur}
-                      onKeyDown={(e) => handleKeyDown(e, index)}
-                      className='   '
-                    />
-                    {tempOptions.length > 2 && (
-                      <Button
-                        onClick={() => removeOption(index)}
-                        variant='danger'
-                        className='m-0 p-0'>
-                        <FaRegWindowClose />
-                      </Button>
-                    )}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              <div className='mt-2 flex flex-row justify-center gap-4'>
+              <div className='my-2 flex flex-row justify-center gap-4'>
                 <Button
                   onClick={handleClearOptions}
                   variant='danger'
-                  className='text-red-500'
+                  className='h-[32px] text-red-500'
                   disabled={!anyOptionFilled(tempOptions)}>
                   Clear All
                 </Button>
                 <Button
                   onClick={addOption}
-                  className='flex flex-row  border border-black p-1'
+                  className='flex h-[32px] flex-row border border-black p-1 '
                   variant='primary'
                   disabled={
                     tempOptions.length >= 6 || !allOptionsFilled(tempOptions)
@@ -277,8 +283,8 @@ function DecisionInput({ options, updateOptions }) {
               </div>
 
               {/* ------------ END INPUT  ----------*/}
-              <DrawerFooter className='pt-2'>
-                <DrawerClose asChild>
+              <DrawerFooter className=' pt-0'>
+                <DrawerClose asChild className='h-9'>
                   <Button variant='outline'>Close</Button>
                 </DrawerClose>
               </DrawerFooter>
@@ -291,6 +297,87 @@ function DecisionInput({ options, updateOptions }) {
 }
 
 export default DecisionInput;
+
+// DRAWER OG - NOT WORKING PAST 4 or 5 options on mobile (keyboard in the way)
+{
+  /* <Drawer open={open} onOpenChange={setOpen}>
+<DrawerTrigger asChild>
+  <Button
+    variant='outline'
+    className='bg-zinc-400 font-bold text-gray-800'>
+    Open Options
+  </Button>
+</DrawerTrigger>
+<DrawerContent>
+  <DrawerHeader className='flex flex-col justify-center gap-2 '>
+    <DrawerTitle className='flex justify-center'>
+      Enter your decisions below!
+    </DrawerTitle>
+    <DrawerDescription className='flex h-fit flex-col justify-center '>
+      <div className='flex justify-center'>{getHeaderText()}</div>
+    </DrawerDescription>
+  </DrawerHeader>
+
+
+  <AnimatePresence>
+    {tempOptions.map((option, index) => (
+      <motion.div
+        key={index}
+        {...animationProps}
+        className='mx-5 my-0.5 flex flex-row items-center justify-between gap-3'>
+        <Label
+          htmlFor={`option-${index}`}
+          className='whitespace-nowrap text-center'>
+          Option <span>{index + 1}</span>
+        </Label>
+        <Input
+          id={`option-${index}`}
+          value={option}
+          onChange={(e) => handleOptionChange(e, index)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+          className='   '
+        />
+        {tempOptions.length > 2 && (
+          <Button
+            onClick={() => removeOption(index)}
+            variant='danger'
+            className='m-0 p-0'>
+            <FaRegWindowClose />
+          </Button>
+        )}
+      </motion.div>
+    ))}
+  </AnimatePresence>
+  <div className='mt-1 flex flex-row justify-center gap-4'>
+    <Button
+      onClick={handleClearOptions}
+      variant='danger'
+      className='text-red-500'
+      disabled={!anyOptionFilled(tempOptions)}>
+      Clear All
+    </Button>
+    <Button
+      onClick={addOption}
+      className='flex flex-row  border border-black p-0.5'
+      variant='primary'
+      disabled={
+        tempOptions.length >= 6 || !allOptionsFilled(tempOptions)
+      }>
+      <FaPlus size={12} />
+      Add Option
+    </Button>
+  </div>
+
+
+  <DrawerFooter className='pt-2'>
+    <DrawerClose asChild>
+      <Button variant='outline'>Close</Button>
+    </DrawerClose>
+  </DrawerFooter>
+</DrawerContent>
+</Drawer> */
+}
 
 // 'use client';
 
