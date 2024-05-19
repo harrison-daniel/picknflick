@@ -74,9 +74,9 @@
     @apply bg-background text-foreground;
   }
 }
-* {
+/* * {
   touch-action: none;
-}
+} */
 
 body,
 html {

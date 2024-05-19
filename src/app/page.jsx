@@ -58,7 +58,7 @@ export default function Home() {
             }
           />
         </div>
-        <div className='relative -inset-x-11 z-10'>
+        <div className='relative -inset-x-11 '>
           <AiFillCaretLeft size={120} className=' text-orange-700' />
         </div>
       </div>
