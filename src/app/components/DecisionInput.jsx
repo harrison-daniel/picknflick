@@ -220,14 +220,14 @@ function DecisionInput({ options, updateOptions }) {
               <Drawer.Overlay className='fixed inset-0 bg-black/40' />
               <Drawer.Content className='fixed bottom-0 left-0 right-0 flex max-h-[96%] flex-col rounded-t-[10px] bg-white'>
                 <div className='mx-auto flex w-full max-w-md flex-col overflow-auto rounded-t-[10px] p-4'>
-                  <div className='sticky top-0 my-3 flex items-center justify-center bg-white'>
+                  <div className='sticky top-0 my-3 flex items-center justify-center bg-white '>
                     Enter your options below! (2 min, 6 max)
                   </div>
                   {tempOptions.map((option, index) => (
                     <>
                       <div
                         key={index}
-                        className='mx-auto   flex flex-row items-center justify-center gap-3 align-middle'>
+                        className='mx-auto    flex flex-row items-center justify-center gap-3 align-middle'>
                         <Label
                           htmlFor={`option-${index}`}
                           className='whitespace-nowrap text-center'>
@@ -254,7 +254,7 @@ function DecisionInput({ options, updateOptions }) {
                       </div>
                     </>
                   ))}
-                  <div className='sticky bottom-0 flex items-center justify-center bg-white'>
+                  <div className=' flex flex-row justify-center'>
                     <Button
                       onClick={handleClearOptions}
                       variant='danger'
