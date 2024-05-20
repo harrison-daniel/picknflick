@@ -15,7 +15,6 @@ import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import useMediaQuery from '../lib/useMediaQuery';
-import { AnimatePresence, motion } from 'framer-motion';
 import { FaRegWindowClose, FaPlus } from 'react-icons/fa';
 
 function DecisionInput({ options, updateOptions }) {
@@ -52,21 +51,26 @@ function DecisionInput({ options, updateOptions }) {
     };
   }, []);
 
-  const sanitizeInput = useCallback((input) => {
-    return input.replace(/<\/?[^>]+(>|$)/g, '');
-  }, []);
+  const sanitizeInput = useCallback(
+    (input) => input.replace(/<\/?[^>]+(>|$)/g, ''),
+    [],
+  );
 
-  const validateOptions = useCallback((optionsArray) => {
-    return optionsArray.filter((option) => option.trim() !== '').length >= 2;
-  }, []);
+  const validateOptions = useCallback(
+    (optionsArray) =>
+      optionsArray.filter((option) => option.trim() !== '').length >= 2,
+    [],
+  );
 
-  const anyOptionFilled = useCallback((optionsArray) => {
-    return optionsArray.some((option) => option.trim() !== '');
-  }, []);
+  const anyOptionFilled = useCallback(
+    (optionsArray) => optionsArray.some((option) => option.trim() !== ''),
+    [],
+  );
 
-  const allOptionsFilled = useCallback((optionsArray) => {
-    return optionsArray.every((option) => option.trim() !== '');
-  }, []);
+  const allOptionsFilled = useCallback(
+    (optionsArray) => optionsArray.every((option) => option.trim() !== ''),
+    [],
+  );
 
   const handleOptionChange = (event, index) => {
     const sanitizedValue = sanitizeInput(event.target.value);
@@ -90,11 +94,8 @@ function DecisionInput({ options, updateOptions }) {
 
   const addOption = () => {
     if (tempOptions.length < 6 && allOptionsFilled(tempOptions)) {
-      setTempOptions([...tempOptions, '']);
-      // Using requestAnimationFrame to ensure the DOM updates before focusing the new input
-      requestAnimationFrame(() => {
-        inputRefs.current[tempOptions.length]?.focus();
-      });
+      setTempOptions(['', ...tempOptions]);
+      inputRefs.current[0]?.focus();
     }
   };
 
@@ -123,13 +124,6 @@ function DecisionInput({ options, updateOptions }) {
     }
   };
 
-  const animationProps = {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -30 },
-    transition: { type: 'spring', stiffness: 300, damping: 30 },
-  };
-
   return (
     <div>
       <Drawer open={open} onOpenChange={setOpen}>
@@ -151,37 +145,33 @@ function DecisionInput({ options, updateOptions }) {
           </DrawerHeader>
           {/* ------------ INPUT CONTENT START ----------*/}
           <div className='my-2 flex flex-col gap-0.5'>
-            <AnimatePresence>
-              {tempOptions.map((option, index) => (
-                <motion.div
-                  key={index}
-                  {...animationProps}
-                  className='mx-5 my-1 flex h-7 flex-row items-center justify-between gap-3'>
-                  <Label
-                    htmlFor={`option-${index}`}
-                    className='whitespace-nowrap text-center'>
-                    Option <span>{index + 1}</span>
-                  </Label>
-                  <Input
-                    id={`option-${index}`}
-                    value={option}
-                    onChange={(e) => handleOptionChange(e, index)}
-                    onBlur={handleBlur}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className=''
-                    ref={(el) => (inputRefs.current[index] = el)}
-                  />
-                  {tempOptions.length > 2 && (
-                    <Button
-                      onClick={() => removeOption(index)}
-                      variant='danger'
-                      className='m-0 p-0'>
-                      <FaRegWindowClose />
-                    </Button>
-                  )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {tempOptions.map((option, index) => (
+              <div
+                key={index}
+                className='mx-5 my-1 flex h-7 flex-row items-center justify-between gap-3'>
+                <Label
+                  htmlFor={`option-${index}`}
+                  className='whitespace-nowrap text-center'>
+                  Option <span>{tempOptions.length - index}</span>
+                </Label>
+                <Input
+                  id={`option-${index}`}
+                  value={option}
+                  onChange={(e) => handleOptionChange(e, index)}
+                  onBlur={handleBlur}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                />
+                {tempOptions.length > 2 && (
+                  <Button
+                    onClick={() => removeOption(index)}
+                    variant='danger'
+                    className='m-0 p-0'>
+                    <FaRegWindowClose />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
 
           <div className='my-2 flex flex-row justify-center gap-4'>
@@ -203,7 +193,6 @@ function DecisionInput({ options, updateOptions }) {
               Add Option
             </Button>
           </div>
-
           {/* ------------ END INPUT  ----------*/}
           <DrawerFooter className='pt-0'>
             <DrawerClose asChild className='h-9'>
