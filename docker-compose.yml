@@ -6,6 +6,8 @@ services:
     ports:
       - '3000:3000'
     restart: always
+    networks:
+      - webnet
 
   nginx:
     image: nginx:alpine
@@ -17,3 +19,8 @@ services:
       - ./certs:/etc/nginx/certs
     depends_on:
       - nextjs
+    networks:
+      - webnet
+
+networks:
+  webnet:

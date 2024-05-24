@@ -94,7 +94,10 @@ const DecisionWheel = ({ options }) => {
   };
 
   return (
-    <div className='roll' ref={wheelRef} style={{ perspective: '1000px' }}>
+    <div
+      className='roll'
+      ref={wheelRef}
+      style={{ perspective: '1000px', userSelect: 'none' }}>
       <motion.div
         className='roll_inner'
         style={{ transform: `rotateX(${rotation}deg)` }}

@@ -17,7 +17,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className=' mx-auto flex h-screen flex-col items-center   '>
+    <main className='mx-auto flex h-screen select-none flex-col items-center   '>
       {/* ------------------ Banner ------------------ */}
 
       <div className=' flex flex-col items-center justify-center '>
