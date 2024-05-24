@@ -16,6 +16,13 @@ COPY . .
 #Build the Next.js application
 RUN npm run build
 
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app ./
+
 #Expose the port the app runs on
 EXPOSE 3000
 
