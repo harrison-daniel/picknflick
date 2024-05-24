@@ -26,7 +26,7 @@ export default function Home() {
             src={PicknFlickLogo3}
             // height={190}
             alt='Pick n Flick Logo'
-            className='w-40 lg:w-72'
+            className='w-40 md:w-48'
           />
         </div>
         <div>
@@ -34,7 +34,7 @@ export default function Home() {
             src={PicknFlickHeader}
             // height={40}
             alt='Pick n Flick Logo'
-            className='w-60 md:w-96'
+            className='w-60 md:w-48'
           />
         </div>
       </div>
