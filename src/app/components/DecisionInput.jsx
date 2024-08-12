@@ -37,25 +37,6 @@ function DecisionInput({ options, updateOptions }) {
     }
   }, [tempOptions, updateOptions]);
 
-  useEffect(() => {
-    const disableZoom = (e) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener('touchmove', disableZoom, { passive: false });
-
-    const disableDoubleTapZoom = (e) => {
-      e.preventDefault();
-    };
-    document.addEventListener('dblclick', disableDoubleTapZoom);
-
-    return () => {
-      document.removeEventListener('touchmove', disableZoom);
-      document.removeEventListener('dblclick', disableDoubleTapZoom);
-    };
-  }, []);
-
   const sanitizeInput = useCallback(
     (input) => input.replace(/<\/?[^>]+(>|$)/g, ''),
     [],
@@ -129,15 +110,27 @@ function DecisionInput({ options, updateOptions }) {
     }
   };
 
+  const focusFirstOption = () => {
+    if (inputRefs.current.length > 0) {
+      inputRefs.current[inputRefs.current.length - 1]?.focus();
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      focusFirstOption();
+    }
+  }, [open]);
+
   return (
     <div>
       {isDesktop ? (
         <div>
-          <Popover onClose={handleBlur}>
+          <Popover onOpenChange={setOpen} onClose={handleBlur}>
             <PopoverTrigger asChild>
               <Button
-                variant='outline'
-                className='bg-zinc-400 font-bold text-gray-800'>
+                // variant='outline'
+                className='bg-neutral-800 font-bold text-neutral-100 hover:bg-neutral-500 active:bg-neutral-500'>
                 Open Options
               </Button>
             </PopoverTrigger>
@@ -148,11 +141,9 @@ function DecisionInput({ options, updateOptions }) {
               <div className='flex justify-center text-center'>
                 {getHeaderText()}
               </div>
-              {/* <AnimatePresence> */}
               {tempOptions.map((option, index) => (
                 <div
                   key={index}
-                  // {...animationProps}
                   className='m-4 flex flex-row items-center justify-between gap-3'>
                   <Label
                     htmlFor={`option-${index}`}
@@ -177,7 +168,6 @@ function DecisionInput({ options, updateOptions }) {
                   )}
                 </div>
               ))}
-              {/* </AnimatePresence> */}
 
               <div className='mt-4 flex flex-row justify-center gap-4'>
                 <Button
@@ -205,8 +195,8 @@ function DecisionInput({ options, updateOptions }) {
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             <Button
-              variant='outline'
-              className='bg-zinc-400 font-bold text-gray-800'>
+              // variant='outline'
+              className='bg-neutral-800 font-bold text-neutral-100 hover:bg-neutral-500 active:bg-neutral-500'>
               Open Options
             </Button>
           </DrawerTrigger>
@@ -220,7 +210,6 @@ function DecisionInput({ options, updateOptions }) {
                   <div className='flex justify-center'>{getHeaderText()}</div>
                 </DrawerDescription>
               </DrawerHeader>
-              {/* ------------ INPUT CONTENT START ----------*/}
 
               {tempOptions.map((option, index) => (
                 <div
@@ -270,7 +259,6 @@ function DecisionInput({ options, updateOptions }) {
                   Add Option
                 </Button>
               </div>
-              {/* ------------ END INPUT  ----------*/}
               <DrawerFooter className='pt-0'>
                 <DrawerClose asChild>
                   <Button variant='outline'>Close</Button>

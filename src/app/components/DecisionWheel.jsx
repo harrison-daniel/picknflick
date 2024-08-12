@@ -1,17 +1,18 @@
 'use client';
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const colors = [
-  'color(display-p3 0.000 0.100 0.080)', // Dark Leaf Green
-  'color(display-p3 0.000 0.000 0.000)', // Nighttime Jungle Green (darkest)
-  'color(display-p3 0.000 0.500 0.480)', // Jungle Canopy Green (lightest)
-  'color(display-p3 0.000 0.400 0.380)', // Rainforest Green
-  'color(display-p3 0.000 0.300 0.280)', // Tropical Green
-  'color(display-p3 0.000 0.200 0.180)', // Underbrush Green
+  'color(display-p3 0.100 0.100 0.100)',
+  'color(display-p3 0.150 0.150 0.150)',
+  'color(display-p3 0.200 0.200 0.200)',
+  'color(display-p3 0.250 0.250 0.250)',
+  'color(display-p3 0.300 0.300 0.300)',
+  'color(display-p3 0.350 0.350 0.350)',
 ];
 
-const DecisionWheel = ({ options }) => {
+const DecisionWheel = ({ options, onSpinComplete, onSpinStart }) => {
   const wheelRef = useRef(null);
   const touchStartY = useRef(0);
   const touchEndVelocity = useRef(0);
@@ -26,21 +27,47 @@ const DecisionWheel = ({ options }) => {
   const paneSize = 165;
   const zDepth = paneSize / (2 * Math.tan(Math.PI / totalSlots));
 
+  const spinWheel = (spinMagnitude) => {
+    if (onSpinStart) {
+      onSpinStart();
+    }
+
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    const randomComponent = (array[0] / (0xffffffff + 1)) * 360 - 180;
+    const finalRotation = rotation + spinMagnitude + randomComponent;
+
+    const offset = degreePerSlot * 0.1 * (Math.random() - 0.5);
+    const adjustedRotation = finalRotation + offset;
+
+    setRotation(adjustedRotation);
+
+    setTimeout(() => {
+      const normalizedRotation = ((adjustedRotation % 360) + 360) % 360;
+      const selectedIndex =
+        Math.floor((normalizedRotation + degreePerSlot / 2) / degreePerSlot) %
+        totalSlots;
+      const selectedOption = options[selectedIndex];
+      if (onSpinComplete) {
+        onSpinComplete(selectedOption);
+      }
+    }, 4500);
+  };
+
   useEffect(() => {
     const handleWheel = (event) => {
       event.preventDefault();
       const scrollIntensity = Math.abs(event.deltaY);
       const scrollDirection = event.deltaY > 0 ? -1 : 1;
       const spinMagnitude =
-        scrollDirection * scrollIntensity * degreePerSlot * 0.025; // Spin Magnitude for desktop
+        scrollDirection * scrollIntensity * degreePerSlot * 0.025;
       spinWheel(spinMagnitude);
     };
 
     const handleTouchStart = (event) => {
       touchStartY.current = event.touches[0].clientY;
-      wheelRef.current.style.transform = 'scale(1.03)'; // Visual feedback on touch
+      wheelRef.current.style.transform = 'scale(1.03)';
       if (navigator.vibrate) {
-        // Haptic feedback on touch
         navigator.vibrate(50);
       }
     };
@@ -52,11 +79,13 @@ const DecisionWheel = ({ options }) => {
     };
 
     const handleTouchEnd = () => {
-      wheelRef.current.style.transform = 'scale(1)'; // Reset visual scale
+      wheelRef.current.style.transform = 'scale(1)';
       if (Math.abs(touchEndVelocity.current) > 10) {
         const direction = touchEndVelocity.current > 0 ? -1 : 1;
         const swipeIntensity = Math.abs(touchEndVelocity.current);
-        const spinMagnitude = direction * swipeIntensity * degreePerSlot * 0.16; //  spin magnitude for mobile
+        const spinMagnitude =
+          direction * swipeIntensity * degreePerSlot * 0.16 +
+          Math.random() * degreePerSlot * 5;
         spinWheel(spinMagnitude);
       }
       touchEndVelocity.current = 0;
@@ -85,14 +114,6 @@ const DecisionWheel = ({ options }) => {
     };
   }, [degreePerSlot, options.length, rotation]);
 
-  const spinWheel = (spinMagnitude) => {
-    const randomComponent = Math.random() * 360 - 180;
-    requestAnimationFrame(() => {
-      const finalRotation = rotation + spinMagnitude + randomComponent;
-      setRotation(finalRotation);
-    });
-  };
-
   return (
     <div
       className='roll'
@@ -101,49 +122,41 @@ const DecisionWheel = ({ options }) => {
       <motion.div
         className='roll_inner'
         style={{ transform: `rotateX(${rotation}deg)` }}
-        transition={{ duration: 3.5, ease: 'easeOut' }}>
+        transition={{ duration: 4.5, ease: 'easeOut' }}>
         {totalSlots === 4 && options.length === 2
           ? [...Array(totalSlots)].map((_, index) => (
-              <>
-                <motion.div
-                  key={index}
-                  className='roll_inner__button'
-                  style={{
-                    transform: `rotateX(${
-                      index * -degreePerSlot
-                    }deg) translateZ(${zDepth}px)`,
-                    transformStyle: 'preserve-3d',
-                    height: `${paneSize}px`,
-                    lineHeight: `${paneSize}px`,
-                    width: '100%',
-                    background: colors[index % 2],
-                    textAlign: 'center',
-                    color: 'white',
-                  }}>
-                  {options[index % 2]}
-                </motion.div>
-              </>
+              <motion.div
+                key={index}
+                className='roll_inner__button'
+                style={{
+                  transform: `rotateX(${index * -degreePerSlot}deg) translateZ(${zDepth}px)`,
+                  transformStyle: 'preserve-3d',
+                  height: `${paneSize}px`,
+                  lineHeight: `${paneSize}px`,
+                  width: '100%',
+                  background: colors[index % 2],
+                  textAlign: 'center',
+                  color: 'white',
+                }}>
+                {options[index % 2]}
+              </motion.div>
             ))
           : options.map((option, index) => (
-              <>
-                <motion.div
-                  key={index}
-                  className='roll_inner__button'
-                  style={{
-                    transform: `rotateX(${
-                      index * -degreePerSlot
-                    }deg) translateZ(${zDepth}px)`,
-                    transformStyle: 'preserve-3d',
-                    height: `${paneSize}px`,
-                    lineHeight: `${paneSize}px`,
-                    width: '100%',
-                    background: colors[index % colors.length],
-                    textAlign: 'center',
-                    color: 'white',
-                  }}>
-                  {option}
-                </motion.div>
-              </>
+              <motion.div
+                key={index}
+                className='roll_inner__button'
+                style={{
+                  transform: `rotateX(${index * -degreePerSlot}deg) translateZ(${zDepth}px)`,
+                  transformStyle: 'preserve-3d',
+                  height: `${paneSize}px`,
+                  lineHeight: `${paneSize}px`,
+                  width: '100%',
+                  background: colors[index % colors.length],
+                  textAlign: 'center',
+                  color: 'white',
+                }}>
+                {option}
+              </motion.div>
             ))}
       </motion.div>
     </div>
