@@ -111,7 +111,7 @@ export default function Home() {
 
       {/* Winner Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className='w-[18rem] rounded-lg '>
+        <DialogContent className='w-[20rem] rounded-lg '>
           <div className='text-center'>
             {winner ? (
               <p className='text-2xl font-semibold'>

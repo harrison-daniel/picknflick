@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { motion } from 'framer-motion';
 
 const colors = [
@@ -27,92 +33,104 @@ const DecisionWheel = ({ options, onSpinComplete, onSpinStart }) => {
   const paneSize = 165;
   const zDepth = paneSize / (2 * Math.tan(Math.PI / totalSlots));
 
-  const spinWheel = (spinMagnitude) => {
-    if (onSpinStart) {
-      onSpinStart();
-    }
-
-    const array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
-    const randomComponent = (array[0] / (0xffffffff + 1)) * 360 - 180;
-    const finalRotation = rotation + spinMagnitude + randomComponent;
-
-    const offset = degreePerSlot * 0.1 * (Math.random() - 0.5);
-    const adjustedRotation = finalRotation + offset;
-
-    setRotation(adjustedRotation);
-
-    setTimeout(() => {
-      const normalizedRotation = ((adjustedRotation % 360) + 360) % 360;
-      const selectedIndex =
-        Math.floor((normalizedRotation + degreePerSlot / 2) / degreePerSlot) %
-        totalSlots;
-      const selectedOption = options[selectedIndex];
-      if (onSpinComplete) {
-        onSpinComplete(selectedOption);
+  const spinWheel = useCallback(
+    (spinMagnitude) => {
+      if (onSpinStart) {
+        onSpinStart();
       }
-    }, 4500);
-  };
 
-  useEffect(() => {
-    const handleWheel = (event) => {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      const randomComponent = (array[0] / (0xffffffff + 1)) * 360 - 180;
+      const finalRotation = rotation + spinMagnitude + randomComponent;
+
+      const offset = degreePerSlot * 0.1 * (Math.random() - 0.5);
+      const adjustedRotation = finalRotation + offset;
+
+      setRotation(adjustedRotation);
+
+      setTimeout(() => {
+        const normalizedRotation = ((adjustedRotation % 360) + 360) % 360;
+        const selectedIndex =
+          Math.floor((normalizedRotation + degreePerSlot / 2) / degreePerSlot) %
+          totalSlots;
+        const selectedOption = options[selectedIndex];
+        if (onSpinComplete) {
+          onSpinComplete(selectedOption);
+        }
+      }, 4500);
+    },
+    [degreePerSlot, rotation, options, totalSlots, onSpinComplete, onSpinStart],
+  );
+
+  const handleTouchStart = useCallback((event) => {
+    touchStartY.current = event.touches[0].clientY;
+    if (wheelRef.current) {
+      wheelRef.current.style.transform = 'scale(1.03)';
+    }
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((event) => {
+    const currentY = event.touches[0].clientY;
+    const deltaY = currentY - touchStartY.current;
+    touchEndVelocity.current = deltaY;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (wheelRef.current) {
+      wheelRef.current.style.transform = 'scale(1)';
+    }
+    if (Math.abs(touchEndVelocity.current) > 10) {
+      const direction = touchEndVelocity.current > 0 ? -1 : 1;
+      const swipeIntensity = Math.abs(touchEndVelocity.current);
+      const spinMagnitude =
+        direction * swipeIntensity * degreePerSlot * 0.16 +
+        Math.random() * degreePerSlot * 5;
+      spinWheel(spinMagnitude);
+    }
+    touchEndVelocity.current = 0;
+  }, [degreePerSlot, spinWheel]);
+
+  const handleWheel = useCallback(
+    (event) => {
       event.preventDefault();
       const scrollIntensity = Math.abs(event.deltaY);
       const scrollDirection = event.deltaY > 0 ? -1 : 1;
       const spinMagnitude =
         scrollDirection * scrollIntensity * degreePerSlot * 0.025;
       spinWheel(spinMagnitude);
-    };
+    },
+    [degreePerSlot, spinWheel],
+  );
 
-    const handleTouchStart = (event) => {
-      touchStartY.current = event.touches[0].clientY;
-      wheelRef.current.style.transform = 'scale(1.03)';
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    };
+  useEffect(() => {
+    const currentWheelRef = wheelRef.current;
 
-    const handleTouchMove = (event) => {
-      const currentY = event.touches[0].clientY;
-      const deltaY = currentY - touchStartY.current;
-      touchEndVelocity.current = deltaY;
-    };
-
-    const handleTouchEnd = () => {
-      wheelRef.current.style.transform = 'scale(1)';
-      if (Math.abs(touchEndVelocity.current) > 10) {
-        const direction = touchEndVelocity.current > 0 ? -1 : 1;
-        const swipeIntensity = Math.abs(touchEndVelocity.current);
-        const spinMagnitude =
-          direction * swipeIntensity * degreePerSlot * 0.16 +
-          Math.random() * degreePerSlot * 5;
-        spinWheel(spinMagnitude);
-      }
-      touchEndVelocity.current = 0;
-    };
-
-    if (wheelRef.current) {
-      wheelRef.current.addEventListener('touchstart', handleTouchStart, {
+    if (currentWheelRef) {
+      currentWheelRef.addEventListener('touchstart', handleTouchStart, {
         passive: false,
       });
-      wheelRef.current.addEventListener('touchmove', handleTouchMove, {
+      currentWheelRef.addEventListener('touchmove', handleTouchMove, {
         passive: false,
       });
-      wheelRef.current.addEventListener('touchend', handleTouchEnd, {
+      currentWheelRef.addEventListener('touchend', handleTouchEnd, {
         passive: false,
       });
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
 
     return () => {
-      if (wheelRef.current) {
-        wheelRef.current.removeEventListener('touchstart', handleTouchStart);
-        wheelRef.current.removeEventListener('touchmove', handleTouchMove);
-        wheelRef.current.removeEventListener('touchend', handleTouchEnd);
+      if (currentWheelRef) {
+        currentWheelRef.removeEventListener('touchstart', handleTouchStart);
+        currentWheelRef.removeEventListener('touchmove', handleTouchMove);
+        currentWheelRef.removeEventListener('touchend', handleTouchEnd);
       }
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [degreePerSlot, options.length, rotation]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel]);
 
   return (
     <div

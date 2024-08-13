@@ -7,8 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import useMediaQuery from '../lib/useMediaQuery';
 
 export default function WelcomeDialog({ isOpen, setIsOpen }) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+
   useEffect(() => {
     const hasVisited = localStorage.getItem('hasVisited');
 
@@ -26,13 +29,16 @@ export default function WelcomeDialog({ isOpen, setIsOpen }) {
             Welcome to Pick n Flick!
           </DialogTitle>
         </DialogHeader>
+
         <div className='mt-4 text-gray-700'>
-          <p>1. Use the "Open Options" button to add your choices.</p>
+          <p>1. Add your choices with the &quot;Open Options&quot; button.</p>
           <p className='pt-3'>
-            2. Flick your mouse wheel or touchpad to start the spin!
-          </p>
-          <p className='pt-3'>
-            3. The winner will be displayed once the wheel has stopped.
+            <span className='hidden md:inline'>
+              2. Flick your mouse wheel or touchpad to start the spin.
+            </span>
+            <span className='inline md:hidden'>
+              2. Tap and hold the wheel, then flick to start the spin.
+            </span>
           </p>
         </div>
         <button

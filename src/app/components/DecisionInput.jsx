@@ -27,16 +27,6 @@ function DecisionInput({ options, updateOptions }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const inputRefs = useRef([]);
 
-  const [tempOptions, setTempOptions] = useState(() =>
-    options.length >= 2 ? options.map((opt) => sanitizeInput(opt)) : ['', ''],
-  );
-
-  useEffect(() => {
-    if (validateOptions(tempOptions)) {
-      updateOptions(tempOptions.filter((option) => option.trim() !== ''));
-    }
-  }, [tempOptions, updateOptions]);
-
   const sanitizeInput = useCallback(
     (input) => input.replace(/<\/?[^>]+(>|$)/g, ''),
     [],
@@ -47,6 +37,16 @@ function DecisionInput({ options, updateOptions }) {
       optionsArray.filter((option) => option.trim() !== '').length >= 2,
     [],
   );
+
+  const [tempOptions, setTempOptions] = useState(() =>
+    options.length >= 2 ? options.map((opt) => sanitizeInput(opt)) : ['', ''],
+  );
+
+  useEffect(() => {
+    if (validateOptions(tempOptions)) {
+      updateOptions(tempOptions.filter((option) => option.trim() !== ''));
+    }
+  }, [tempOptions, updateOptions, validateOptions]);
 
   const anyOptionFilled = useCallback(
     (optionsArray) => optionsArray.some((option) => option.trim() !== ''),
