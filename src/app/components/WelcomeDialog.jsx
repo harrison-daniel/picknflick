@@ -1,52 +1,49 @@
 'use client';
 
-import { useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
+import { useState } from 'react';
 import useMediaQuery from '../lib/useMediaQuery';
+import { useWebHaptics } from 'web-haptics/react';
+import { initAudio } from '../lib/wheelAudio';
 
-export default function WelcomeDialog({ isOpen, setIsOpen }) {
+export default function WelcomeDialog({ onDismiss }) {
+  const [visible, setVisible] = useState(true);
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { trigger: haptic } = useWebHaptics();
 
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('hasVisited');
+  const handleDismiss = () => {
+    initAudio();
+    haptic('nudge');
+    setVisible(false);
+    onDismiss?.();
+  };
 
-    if (!hasVisited) {
-      setIsOpen(true);
-      localStorage.setItem('hasVisited', 'true');
-    }
-  }, [setIsOpen]);
+  if (!visible) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className='text-center'>
-            Welcome to Pick n Flick!
-          </DialogTitle>
-        </DialogHeader>
-
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center'
+      onClick={handleDismiss}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        handleDismiss();
+      }}>
+      <div className='absolute inset-0 bg-black/80' />
+      <div className='relative z-10 w-[20rem] rounded-lg border bg-white p-8 shadow-lg'>
+        <h2 className='text-center text-lg font-semibold'>
+          Welcome to Pick n Flick!
+        </h2>
         <div className='mt-4 text-gray-700'>
           <p>1. Add your choices with the &quot;Open Options&quot; button.</p>
           <p className='pt-3'>
-            <span className='hidden md:inline'>
-              2. Flick your mouse wheel or touchpad to start the spin.
-            </span>
-            <span className='inline md:hidden'>
-              2. Tap and hold the wheel, then flick to start the spin.
-            </span>
+            {isDesktop
+              ? '2. Flick your mouse wheel or touchpad to start the spin.'
+              : '2. Tap and hold the wheel, then flick to start the spin.'}
           </p>
         </div>
-        <button
-          onClick={() => setIsOpen(false)}
-          className='mt-6 rounded-lg bg-slate-950 px-4 py-2 text-white'>
-          Got it!
-        </button>
-      </DialogContent>
-    </Dialog>
+        <p className='mt-6 text-center text-sm text-gray-400'>
+          Tap anywhere to start
+        </p>
+      </div>
+    </div>
   );
 }

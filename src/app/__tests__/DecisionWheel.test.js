@@ -1,4 +1,3 @@
-// Define the function directly in the test file
 function calculateSelectedOption(rotationDegree, optionsLength) {
   const totalSlots = optionsLength === 2 ? 4 : optionsLength;
   const degreePerSlot = 360 / totalSlots;
@@ -10,7 +9,7 @@ function calculateSelectedOption(rotationDegree, optionsLength) {
 
 describe('DecisionWheel Randomness Core Logic', () => {
   const spins = 1000;
-  const tolerance = 0.5; // Adjust as needed
+  const tolerance = 0.5;
 
   const testRandomnessForOptions = (options) => {
     const outcomes = {};

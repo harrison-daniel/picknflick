@@ -1,80 +1,97 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
-import { Dialog, DialogContent } from './components/ui/dialog';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import WinnerDialog from './components/WinnerDialog';
 import DecisionWheel from './components/DecisionWheel';
 import { AiFillCaretLeft } from 'react-icons/ai';
 import { GiPointing } from 'react-icons/gi';
 import { IoInformationCircle } from 'react-icons/io5';
+import { MdHistory } from 'react-icons/md';
 import DecisionInput from './components/DecisionInput';
 import WelcomeDialog from './components/WelcomeDialog';
+import HistoryDialog from './components/HistoryDialog';
+import { useWebHaptics } from 'web-haptics/react';
+import { playDing } from './lib/wheelAudio';
 
 export default function Home() {
   const [options, setOptions] = useState([]);
   const [winner, setWinner] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isWelcomeDialogOpen, setIsWelcomeDialogOpen] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const lastSpinTimeRef = useRef(0);
   const spinTimeoutRef = useRef(null);
+  const { trigger: haptic } = useWebHaptics();
 
-  const updateOptions = useCallback((newOptions) => {
-    setOptions(newOptions);
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem('spinHistory');
+      if (savedHistory) setHistory(JSON.parse(savedHistory));
+    } catch {
+      localStorage.removeItem('spinHistory');
+    }
   }, []);
 
-  const handleSpinComplete = (selectedOption) => {
-    lastSpinTimeRef.current = Date.now();
+  const addToHistory = useCallback((option) => {
+    setHistory((prev) => {
+      const updated = [{ option, timestamp: Date.now() }, ...prev].slice(0, 50);
+      localStorage.setItem('spinHistory', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
-    if (spinTimeoutRef.current) {
-      clearTimeout(spinTimeoutRef.current);
-    }
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    localStorage.removeItem('spinHistory');
+    haptic('nudge');
+  }, [haptic]);
 
-    const timeoutDuration = 1450;
+  const handleSpinComplete = useCallback(
+    (selectedOption) => {
+      lastSpinTimeRef.current = Date.now();
 
-    spinTimeoutRef.current = setTimeout(() => {
-      const timeSinceLastSpin = Date.now() - lastSpinTimeRef.current;
-      if (timeSinceLastSpin >= timeoutDuration) {
-        setWinner(selectedOption);
-        setDialogOpen(true);
+      if (spinTimeoutRef.current) {
+        clearTimeout(spinTimeoutRef.current);
       }
-    }, timeoutDuration);
-  };
 
-  const handleSpinStart = () => {
+      const timeoutDuration = 1450;
+
+      spinTimeoutRef.current = setTimeout(() => {
+        const timeSinceLastSpin = Date.now() - lastSpinTimeRef.current;
+        if (timeSinceLastSpin >= timeoutDuration) {
+          setWinner(selectedOption);
+          setDialogOpen(true);
+          addToHistory(selectedOption);
+          haptic('success');
+          playDing();
+        }
+      }, timeoutDuration);
+    },
+    [addToHistory, haptic],
+  );
+
+  const handleSpinStart = useCallback(() => {
     setDialogOpen(false);
 
     if (spinTimeoutRef.current) {
       clearTimeout(spinTimeoutRef.current);
     }
-  };
+  }, []);
 
-  const handleInfoClick = () => {
-    setIsWelcomeDialogOpen(true);
-  };
+  const anyModalOpen = dialogOpen || isHistoryOpen || isInfoOpen;
 
   return (
-    <main className='mx-auto flex h-screen select-none flex-col items-center'>
-      <WelcomeDialog
-        isOpen={isWelcomeDialogOpen}
-        setIsOpen={setIsWelcomeDialogOpen}
-      />
-
-      {/* Banner */}
-      <div className='flex flex-col items-center justify-center'>
-        <div className='flex flex-row items-center justify-around gap-6 pt-12 text-center'>
-          <div className='mx-auto flex w-full justify-center '>
-            <h1 className='font-sans text-5xl font-bold md:text-6xl '>
-              Pick n Flick
-            </h1>
-          </div>
-          <div className='flex text-[3rem]'>
-            <GiPointing />
-          </div>
+    <main className='fixed inset-0 flex select-none flex-col items-center overflow-hidden'>
+      <div className='flex h-full w-full max-w-lg flex-col items-center justify-evenly px-6 py-8'>
+        <div className='flex items-center gap-6 pb-4'>
+          <h1 className='font-sans text-5xl font-bold md:text-6xl'>
+            Pick n Flick
+          </h1>
+          <GiPointing className='text-[3rem]' />
         </div>
-      </div>
 
-      {/* Wheel + Arrow */}
-      <div className='mt-[17vh] flex flex-row items-center pl-28'>
-        <div>
+        <div className='relative'>
           <DecisionWheel
             options={
               options.length
@@ -90,39 +107,53 @@ export default function Home() {
             }
             onSpinComplete={handleSpinComplete}
             onSpinStart={handleSpinStart}
+            disabled={anyModalOpen}
+          />
+          <AiFillCaretLeft
+            size={120}
+            className='absolute top-1/2 -translate-y-1/2 text-red-700'
+            style={{ left: 'calc(100% - 44px)' }}
           />
         </div>
-        <div className='relative -inset-x-11'>
-          <AiFillCaretLeft size={120} className='text-red-700' />
-        </div>
-      </div>
 
-      {/* Input and Info Popover */}
-      <div className='mt-[25vh] flex flex-row justify-center gap-6 align-middle md:mt-[19vh]'>
-        <DecisionInput options={options} updateOptions={updateOptions} />
-        <div className='flex items-center align-middle'>
-          <IoInformationCircle
-            size={30}
-            className='cursor-pointer font-bold   text-neutral-800 hover:text-neutral-500 active:text-neutral-500'
-            onClick={handleInfoClick}
-          />
-        </div>
-      </div>
-
-      {/* Winner Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className='w-[20rem] rounded-lg '>
-          <div className='text-center'>
-            {winner ? (
-              <p className='text-2xl font-semibold'>
-                <span className='text-red-700'>{winner}</span> wins!
-              </p>
-            ) : (
-              <p>Spinning...</p>
-            )}
+        <div className='flex items-center justify-center gap-6 pt-4'>
+          <DecisionInput options={options} updateOptions={setOptions} />
+          <div className='flex items-center gap-3'>
+            <MdHistory
+              size={28}
+              className='cursor-pointer text-neutral-800 hover:text-neutral-500 active:text-neutral-500'
+              onClick={() => setIsHistoryOpen(true)}
+            />
+            <IoInformationCircle
+              size={30}
+              className='cursor-pointer font-bold text-neutral-800 hover:text-neutral-500 active:text-neutral-500'
+              onClick={() => setIsInfoOpen(true)}
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
+
+      <WelcomeDialog />
+      <HistoryDialog
+        isOpen={isHistoryOpen}
+        setIsOpen={setIsHistoryOpen}
+        history={history}
+        onClear={clearHistory}
+      />
+      <WinnerDialog
+        open={dialogOpen}
+        winner={winner}
+        onClose={() => {
+          setDialogOpen(false);
+          if (spinTimeoutRef.current) {
+            clearTimeout(spinTimeoutRef.current);
+            spinTimeoutRef.current = null;
+          }
+        }}
+      />
+      {isInfoOpen && (
+        <WelcomeDialog onDismiss={() => setIsInfoOpen(false)} />
+      )}
     </main>
   );
 }

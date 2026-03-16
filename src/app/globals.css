@@ -34,44 +34,11 @@
 
     --radius: 0.5rem;
   }
-
-  .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-
-    --primary: 210 20% 98%;
-    --primary-foreground: 220.9 39.3% 11%;
-
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 216 12.2% 83.9%;
-  }
 }
 
 * {
   @apply border-border;
-  user-select: none;
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -86,16 +53,16 @@ html {
   overflow: hidden;
   touch-action: none;
   -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
   height: 100%;
-
   background-color: color(display-p3 0.95 0.95 0.95);
 }
 
 input,
 textarea {
   font-size: 16px;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .roll {
@@ -114,8 +81,8 @@ textarea {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: 4.5s;
   transform-origin: center;
+  will-change: transform;
 }
 
 .roll_inner__button {
@@ -127,15 +94,3 @@ textarea {
 button[disabled] {
   cursor: not-allowed;
 }
-
-/* button[disabled]:hover::after {
-  content: attr(title);
-  position: absolute;
-  padding: 4px 8px;
-  background: black;
-  color: white;
-  border-radius: 5px;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-} */

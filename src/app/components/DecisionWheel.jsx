@@ -1,13 +1,18 @@
 'use client';
 
-import React, {
+import {
   useState,
   useEffect,
   useRef,
   useMemo,
   useCallback,
 } from 'react';
-import { motion } from 'framer-motion';
+import { useWebHaptics } from 'web-haptics/react';
+import {
+  initAudio,
+  scheduleTickSounds,
+  clearTickSchedule,
+} from '../lib/wheelAudio';
 
 const colors = [
   'color(display-p3 0.100 0.100 0.100)',
@@ -18,15 +23,26 @@ const colors = [
   'color(display-p3 0.350 0.350 0.350)',
 ];
 
-const DecisionWheel = ({ options, onSpinComplete, onSpinStart }) => {
+const MIN_ROTATIONS = 3;
+const SPIN_DURATION_MIN = 3000;
+const SPIN_DURATION_MAX = 8000;
+const BEZIER = 'cubic-bezier(0.12, 0.8, 0.2, 1)';
+
+const DecisionWheel = ({ options, onSpinComplete, onSpinStart, disabled }) => {
   const wheelRef = useRef(null);
-  const touchStartY = useRef(0);
-  const touchEndVelocity = useRef(0);
+  const lastTouchY = useRef(0);
+  const lastTouchTime = useRef(0);
+  const touchVelocity = useRef(0);
+  const spinTimeoutRef = useRef(null);
+  const tickTimeoutsRef = useRef([]);
+  const rotationRef = useRef(0);
   const [rotation, setRotation] = useState(0);
+  const [spinDuration, setSpinDuration] = useState(5500);
+
+  const { trigger: haptic } = useWebHaptics();
 
   const totalSlots = useMemo(() => {
-    if (options.length === 2) return 4;
-    return options.length;
+    return options.length === 2 ? 4 : options.length;
   }, [options.length]);
 
   const degreePerSlot = 360 / totalSlots;
@@ -35,99 +51,163 @@ const DecisionWheel = ({ options, onSpinComplete, onSpinStart }) => {
 
   const spinWheel = useCallback(
     (spinMagnitude) => {
-      if (onSpinStart) {
-        onSpinStart();
-      }
+      if (disabled) return;
 
-      const array = new Uint32Array(1);
+      initAudio();
+      onSpinStart?.();
+
+      const direction = spinMagnitude >= 0 ? 1 : -1;
+      const absMagnitude = Math.abs(spinMagnitude);
+
+      const minDegrees = MIN_ROTATIONS * 360;
+      const velocityDegrees = minDegrees + absMagnitude * 2;
+
+      const array = new Uint32Array(2);
       window.crypto.getRandomValues(array);
-      const randomComponent = (array[0] / (0xffffffff + 1)) * 360 - 180;
-      const finalRotation = rotation + spinMagnitude + randomComponent;
+      const extraRotations = 1 + (array[0] / (0xffffffff + 1)) * 2;
+      const baseSpin = velocityDegrees + extraRotations * 360;
 
-      const offset = degreePerSlot * 0.1 * (Math.random() - 0.5);
-      const adjustedRotation = finalRotation + offset;
+      const randomLanding = (array[1] / (0xffffffff + 1)) * 360;
 
+      const fullRotations = Math.floor(baseSpin / 360) * 360;
+      const adjustedRotation =
+        rotationRef.current + direction * (fullRotations + randomLanding);
+
+      const rotationDelta = Math.abs(adjustedRotation - rotationRef.current);
+      const duration = Math.round(
+        Math.min(
+          SPIN_DURATION_MAX,
+          Math.max(SPIN_DURATION_MIN, 1500 + rotationDelta * 0.7),
+        ),
+      );
+
+      rotationRef.current = adjustedRotation;
+      setSpinDuration(duration);
       setRotation(adjustedRotation);
 
-      setTimeout(() => {
+      if (spinTimeoutRef.current) {
+        clearTimeout(spinTimeoutRef.current);
+      }
+      clearTickSchedule(tickTimeoutsRef.current);
+
+      const currentNorm =
+        ((Math.abs(rotationRef.current) % degreePerSlot) + degreePerSlot) %
+        degreePerSlot;
+      const offsetToFirst =
+        currentNorm < 0.01 ? degreePerSlot : degreePerSlot - currentNorm;
+
+      tickTimeoutsRef.current = scheduleTickSounds(
+        rotationDelta,
+        degreePerSlot,
+        duration,
+        offsetToFirst,
+      );
+
+      spinTimeoutRef.current = setTimeout(() => {
         const normalizedRotation = ((adjustedRotation % 360) + 360) % 360;
         const selectedIndex =
-          Math.floor((normalizedRotation + degreePerSlot / 2) / degreePerSlot) %
-          totalSlots;
-        const selectedOption = options[selectedIndex];
-        if (onSpinComplete) {
-          onSpinComplete(selectedOption);
-        }
-      }, 4500);
+          Math.floor(
+            (normalizedRotation + degreePerSlot / 2) / degreePerSlot,
+          ) % totalSlots;
+        const selectedOption = options[selectedIndex % options.length];
+
+        haptic('success');
+        onSpinComplete?.(selectedOption);
+      }, duration);
     },
-    [degreePerSlot, rotation, options, totalSlots, onSpinComplete, onSpinStart],
+    [
+      degreePerSlot,
+      options,
+      totalSlots,
+      onSpinComplete,
+      onSpinStart,
+      disabled,
+      haptic,
+    ],
   );
 
-  const handleTouchStart = useCallback((event) => {
-    touchStartY.current = event.touches[0].clientY;
-    if (wheelRef.current) {
-      wheelRef.current.style.transform = 'scale(1.03)';
-    }
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+      clearTickSchedule(tickTimeoutsRef.current);
+    };
   }, []);
+
+  const handleTouchStart = useCallback(
+    (event) => {
+      initAudio();
+      const y = event.touches[0].clientY;
+      lastTouchY.current = y;
+      lastTouchTime.current = performance.now();
+      touchVelocity.current = 0;
+
+      if (wheelRef.current) {
+        wheelRef.current.style.transform = 'scale(1.03)';
+      }
+      haptic('nudge');
+    },
+    [haptic],
+  );
 
   const handleTouchMove = useCallback((event) => {
     const currentY = event.touches[0].clientY;
-    const deltaY = currentY - touchStartY.current;
-    touchEndVelocity.current = deltaY;
+    const now = performance.now();
+    const dt = now - lastTouchTime.current;
+
+    if (dt > 5) {
+      const instantVelocity = (currentY - lastTouchY.current) / dt;
+      touchVelocity.current =
+        touchVelocity.current * 0.2 + instantVelocity * 0.8;
+      lastTouchY.current = currentY;
+      lastTouchTime.current = now;
+    }
   }, []);
 
   const handleTouchEnd = useCallback(() => {
     if (wheelRef.current) {
       wheelRef.current.style.transform = 'scale(1)';
     }
-    if (Math.abs(touchEndVelocity.current) > 10) {
-      const direction = touchEndVelocity.current > 0 ? -1 : 1;
-      const swipeIntensity = Math.abs(touchEndVelocity.current);
-      const spinMagnitude =
-        direction * swipeIntensity * degreePerSlot * 0.16 +
-        Math.random() * degreePerSlot * 5;
+
+    const velocity = touchVelocity.current;
+    const absVelocity = Math.abs(velocity);
+
+    if (absVelocity > 0.12) {
+      const direction = velocity > 0 ? -1 : 1;
+      const spinMagnitude = direction * absVelocity * 500;
       spinWheel(spinMagnitude);
     }
-    touchEndVelocity.current = 0;
+
+    touchVelocity.current = 0;
   }, [degreePerSlot, spinWheel]);
 
   const handleWheel = useCallback(
     (event) => {
       event.preventDefault();
+      initAudio();
+      if (disabled) return;
+
       const scrollIntensity = Math.abs(event.deltaY);
       const scrollDirection = event.deltaY > 0 ? -1 : 1;
       const spinMagnitude =
-        scrollDirection * scrollIntensity * degreePerSlot * 0.025;
+        scrollDirection * scrollIntensity * 1.2;
       spinWheel(spinMagnitude);
     },
-    [degreePerSlot, spinWheel],
+    [degreePerSlot, spinWheel, disabled],
   );
 
   useEffect(() => {
-    const currentWheelRef = wheelRef.current;
+    const el = wheelRef.current;
+    if (!el) return;
 
-    if (currentWheelRef) {
-      currentWheelRef.addEventListener('touchstart', handleTouchStart, {
-        passive: false,
-      });
-      currentWheelRef.addEventListener('touchmove', handleTouchMove, {
-        passive: false,
-      });
-      currentWheelRef.addEventListener('touchend', handleTouchEnd, {
-        passive: false,
-      });
-      window.addEventListener('wheel', handleWheel, { passive: false });
-    }
+    el.addEventListener('touchstart', handleTouchStart, { passive: false });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd, { passive: false });
+    window.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      if (currentWheelRef) {
-        currentWheelRef.removeEventListener('touchstart', handleTouchStart);
-        currentWheelRef.removeEventListener('touchmove', handleTouchMove);
-        currentWheelRef.removeEventListener('touchend', handleTouchEnd);
-      }
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('wheel', handleWheel);
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel]);
@@ -136,47 +216,33 @@ const DecisionWheel = ({ options, onSpinComplete, onSpinStart }) => {
     <div
       className='roll'
       ref={wheelRef}
-      style={{ perspective: '1000px', userSelect: 'none' }}>
-      <motion.div
+>
+      <div
         className='roll_inner'
-        style={{ transform: `rotateX(${rotation}deg)` }}
-        transition={{ duration: 4.5, ease: 'easeOut' }}>
-        {totalSlots === 4 && options.length === 2
-          ? [...Array(totalSlots)].map((_, index) => (
-              <motion.div
-                key={index}
-                className='roll_inner__button'
-                style={{
-                  transform: `rotateX(${index * -degreePerSlot}deg) translateZ(${zDepth}px)`,
-                  transformStyle: 'preserve-3d',
-                  height: `${paneSize}px`,
-                  lineHeight: `${paneSize}px`,
-                  width: '100%',
-                  background: colors[index % 2],
-                  textAlign: 'center',
-                  color: 'white',
-                }}>
-                {options[index % 2]}
-              </motion.div>
-            ))
-          : options.map((option, index) => (
-              <motion.div
-                key={index}
-                className='roll_inner__button'
-                style={{
-                  transform: `rotateX(${index * -degreePerSlot}deg) translateZ(${zDepth}px)`,
-                  transformStyle: 'preserve-3d',
-                  height: `${paneSize}px`,
-                  lineHeight: `${paneSize}px`,
-                  width: '100%',
-                  background: colors[index % colors.length],
-                  textAlign: 'center',
-                  color: 'white',
-                }}>
-                {option}
-              </motion.div>
-            ))}
-      </motion.div>
+        style={{
+          transform: `rotateX(${rotation}deg)`,
+          transition: `transform ${spinDuration}ms ${BEZIER}`,
+        }}>
+        {[...Array(totalSlots)].map((_, index) => (
+          <div
+            key={index}
+            className='roll_inner__button'
+            style={{
+              transform: `rotateX(${index * -degreePerSlot}deg) translateZ(${zDepth}px)`,
+              height: `${paneSize}px`,
+              lineHeight: `${paneSize}px`,
+              width: '100%',
+              background:
+                options.length === 2
+                  ? colors[index % 2]
+                  : colors[index % colors.length],
+              textAlign: 'center',
+              color: 'white',
+            }}>
+            {options[index % options.length]}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -1,24 +1,23 @@
-version: '3'
-
 services:
   nextjs:
     build: .
-    ports:
-      - '3000:3000'
     restart: always
     networks:
       - webnet
+    expose:
+      - "3000"
 
   nginx:
     image: nginx:alpine
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       - nextjs
+    restart: always
     networks:
       - webnet
 
