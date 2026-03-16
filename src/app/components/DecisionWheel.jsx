@@ -178,7 +178,7 @@ const DecisionWheel = ({ options, onSpinComplete, onSpinStart, disabled }) => {
     }
 
     touchVelocity.current = 0;
-  }, [degreePerSlot, spinWheel]);
+  }, [spinWheel]);
 
   const handleWheel = useCallback(
     (event) => {
@@ -192,7 +192,7 @@ const DecisionWheel = ({ options, onSpinComplete, onSpinStart, disabled }) => {
         scrollDirection * scrollIntensity * 1.2;
       spinWheel(spinMagnitude);
     },
-    [degreePerSlot, spinWheel, disabled],
+    [spinWheel, disabled],
   );
 
   useEffect(() => {
